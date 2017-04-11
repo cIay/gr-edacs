@@ -1,0 +1,451 @@
+  ****************************************************************************
+  *                                                                          *
+  *                                                                          *
+  *                  Edmonton Public Safety and Public Works                 *
+  *                                                                          *
+  *                           Author - Clayton Caron                         *
+  *                                                                          *
+  *                                                                          *
+  *                                                                          *
+  *    System Type: EDACS Standard                                           *
+  *    System Voice: ProVoice and Analog                  January 15, 2017   *
+   *                                                                        * 
+    ************************************************************************  
+
+Sources 
+        www.radioreference.com/apps/db/?sid=1328
+        www.itu.int/dms_pub/itu-r/opb/rep/R-REP-M.2014-1998-PDF-E.pdf
+        www.eccpage.com/bch3.c
+        wiki.radioreference.com/index.php/EDACS_Fleetmap
+        www.sigidwiki.com/wiki/EDACS
+       *users.netropolis.net/maverick/scanners/edacs.htm
+
+*Accessed via https://archive.org/web/
+
+
+
+ ================================
+  EDACS Trunking Control Channel
+ ================================
+
+Modulation
+        Gaussian Frequency-Shift Keying (GFSK) digital modulation
+
+Baud Rate
+        9600 Baud
+
+Frame Sync
+        Frame synchronization is accomplished by sending the following
+        48 bit sequence (Preamble + Barker + Preamble):
+
+        010101010101010101010111000100100101010101010101
+         or
+        0x555557125555 Hexadecimal
+
+Messages
+        After transmission of the frame synchronization sequence, two data 
+        blocks are sent which both consist of 120 bits. Each block contains 
+        3, 40 bit copies of a message, with the middle copy being inverted. 
+        These repeated bits can then be used to correct errors by ignoring 
+        any single wayward bit in each of the 40 triplets.
+
+
+ +--------------------------------------------+
+ |                Frame (30 ms)               |
+ +--------------------------------------------+
+ |    |    |    |    | __ |    |    | __ |    |
+ |  P |  B |  P | M1 | M1 | M1 | M2 | M2 | M2 |
+ |    |    |    |    |    |    |    |    |    |
+ +----+----+----+----+----+----+----+----+----+
+    ^    ^    ^  \____________/ \____________/
+    |    |    |         ^              ^
+ Preamble| Preamble     |              |
+(21 bits)|(16 bits)  Message        Message
+         |            No. 1          No. 2
+      Barker       (40*3 bits)     (40*3 bits)
+     (11 bits)
+
+
+     Message
+ +---------+------------------------------+
+ |   Bits  |        Function              |
+ +---------+------------------------------+
+ |  0 - 7  | Command bits                 |
+ +---------+------------------------------+
+ |  8 - 12 | Logical channel number (LCN) |
+ +---------+------------------------------+
+ | 13 - 16 | Status bits                  |
+ +---------+------------------------------+
+ | 17 - 19 | Agency ID                    |\
+ +---------+------------------------------+ |
+ | 20 - 23 | Fleet ID                     | |<--Talkgroup
+ +---------+------------------------------+ |
+ | 24 - 27 | Subfleet ID                  |/
+ +---------+------------------------------+
+ | 28 - 39 | Error correction polynomial  |
+ +---------+------------------------------+
+
+Commands
+        0xEC - Phone patch channel assignment
+        0xEE - Voice channel assignment
+        0xEF - Data channel assignment
+        0xFC - Idle channel
+        0xFD - ID bits give system ID; possibly includes status bits as well
+
+Note: I have only included frequently observed commands and commands described 
+in edacs.htm. 50+ more unknown 'commands' were seen, and others likely exist,
+however I believe they are garbage values, or values assoiciated with the 
+unknown status bits.
+
+
+Status bits
+        The first three status bits are unknown. The fourth bit is potentially 
+        a group call if cleared, and an individual call if set. In the case of 
+        an individual call bits 17-27 would indicate the radio ID rather than
+        the talkgroup. 
+
+AFS
+        EDACS talkgroups are divided into agencies. Each agency has a number of 
+        fleets, and each of these fleets has a number of subfleets. This 
+        hierarchical structure allows for filtering of group calls. If all 
+        three fields are filled in it is a subfleet call, and only those who 
+        are in that subfleet will hear it. If subfleet is left blank it is a 
+        fleet call and everyone within that fleet will respond, regardless of 
+        subfleet. If agency is the only field filled, it is a group call to the
+        entire agency.
+
+Error correction
+        In addition to the message copies, error detection and correction is 
+        achieved using a (40, 28) binary BCH code, where the order of the 
+        Galois field extension is 6. 12 additional bits are appended to each 
+        message which have the capability of correcting 2 bits of the original 
+        message.
+
+
+
+  ====================
+   System Frequencies
+  ====================
+
+ +-----+---------------+
+ | LCN |   Frequency   |
+ +-----+---------------+
+ | 01  |   866.0375    |
+ +-----+---------------+
+ | 13  |   866.0625    |
+ +-----+---------------+
+ | 02  |   866.2875    |
+ +-----+---------------+
+ | 14  |   866.3125    |
+ +-----+---------------+
+ | 03  |   866.5375    |
+ +-----+---------------+
+ | 15  |   866.5625    |
+ +-----+---------------+
+ | 04  |   866.7875    |
+ +-----+---------------+
+ | 16  |   866.8125    |
+ +-----+---------------+
+ | 05  |   867.0375    |
+ +-----+---------------+
+ | 17  |   867.0625    |
+ +-----+---------------+
+ | 06  |   867.2875    |
+ +-----+---------------+
+ | 18  |   867.3125    |
+ +-----+---------------+
+ | 07  |   867.5375    |
+ +-----+---------------+
+ | 19  |   867.5625    |
+ +-----+---------------+
+ | 08  |   867.7875    |
+ +-----+---------------+
+ | 20  |   867.8125    |
+ +-----+---------------+
+ | 09  |   868.0375    |
+ +-----+---------------+
+ | 10  |   868.2875    |
+ +-----+---------------+
+ | 11  |   868.5375    |
+ +-----+---------------+
+ | 12  |   868.7875    |
+ +-----+---------------+
+
+
+ ===================
+  System Talkgroups
+ ===================
+
+ ==Police Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 37     00-045  A     All-Call                                   Law Dispatch 
+ 544    04-040  A     PD Announcements (all channels)            Law Dispatch 
+ 545    04-041  A     Division A - West                          Law Dispatch 
+ 578    04-082  D     Division A - West TAC PV                   Law Tac 
+ 548    04-044  A     Division B - Northeast                     Law Dispatch 
+ 561    04-061  A     Division C - Southwest                     Law Dispatch 
+ 547    04-043  A     Division D - Downtown                      Law Dispatch 
+ 580    04-084  M     Division D - Downtown PV                   Law Dispatch 
+ 546    04-042  A     Division E - Southeast                     Law Dispatch 
+ 579    04-083  D     Division E - Southeast TAC PV              Law Tac 
+ 564    04-064  A     Division F - Northwest                     Law Dispatch 
+ 594    04-102  M     Division F - NorthWest TAC PV              Law Tac 
+ 554    04-052  D     EPS Papa Checks PV                         Law Tac 
+ 549    04-045  D     Traffic                                    Law Dispatch 
+ 773    06-005  D     Traffic Division PV                        Law Tac 
+ 1574   12-046  A     Police - West Edmonton Mall                Law Dispatch 
+ 552    04-050  D     Special Event 1                            Law Tac 
+ 553    04-051  D     Special Event 2                            Law Tac 
+ 555    04-053  D     Document Enquiries                         Law Tac 
+ 550    04-046  A     Parks Unit                                 Law Talk 
+ 641    05-001  D     Training Tactical 1                        Law Tac 
+ 642    05-002  D     Training Tactical 2                        Law Tac 
+ 646    05-006  A     Police Training                            Law Tac 
+ 649    05-011  A     Training                                   Law Talk 
+ 1572   12-044  A     Mutual Aid Ch 1                            Law Dispatch 
+ 1573   12-045  A     Mutual Aid Ch 2                            Law Dispatch 
+ 1577   12-051  A     Mutual Aid Ch 3                            Law Dispatch 
+ 569    04-071  A     Mutual A                                   Law Talk 
+ 557    04-055  A     Bylaw/Parking Enforcement                  Law Tac 
+ 566    04-066  A     Churchhill Square Corporate Security Ops   Law Talk 
+ 558    04-056  A     Ottewell Community Patrol                  Law Talk 
+ 559    04-057  A     Millwood Community Patrol                  Law Talk 
+ 648    05-010  A     Parking                                    Law Talk 
+ 647    05-007  A     Janitors                                   Law Talk 
+
+
+ ==Fire Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 1056   08-040  A     FIRE All Call                              Fire Dispatch 
+ 1057   08-041  A     Dispatch 1                                 Fire Dispatch 
+ 1058   08-042  A     Dispatch 2                                 Fire Dispatch 
+ 1060   08-044  A     Fire Information                           Fire Dispatch 
+ 1061   08-045  A     Working Ch 1                               Fire-Tac 
+ 1062   08-046  A     Working Ch 2                               Fire-Tac 
+ 1063   08-047  A     Working Ch 3                               Fire-Tac 
+ 1064   08-050  A     Working Ch 4                               Fire-Tac 
+ 1065   08-051  A     Working Ch 5                               Fire-Tac 
+ 1066   08-052  A     Working Ch 6                               Fire-Tac 
+ 1067   08-053  A     Working Ch 7                               Fire-Tac 
+ 1068   08-054  A     Working Ch 8                               Fire-Tac 
+ 1073   08-061  A     Working Ch 9                               Fire-Tac 
+ 1074   08-062  A     Working Ch 10                              Fire-Tac 
+ 1075   08-063  A     Working Ch 11                              Fire-Tac 
+ 1076   08-064  A     Working Ch 12                              Fire-Tac 
+ 1077   08-065  A     Working Ch 13                              Fire-Tac 
+ 1092   08-084  A     Training 1                                 Fire-Talk 
+ 1093   08-085  A     Training 2                                 Fire-Talk 
+ 1098   08-092  A     Training 3                                 Fire-Talk 
+ 1099   08-093  A     Training 4                                 Fire-Talk 
+ 1100   08-094  A     Training 5                                 Fire-Talk 
+ 1101   08-095  A     Training 6                                 Fire-Talk 
+ 1102   08-096  A     FIRE/EMS TAC 1                             Multi-Tac 
+ 1103   08-097  A     FIRE/EMS TAC 2                             Multi-Tac 
+ 1104   08-100  A     FIRE/EMS TAC 3                             Multi-Tac 
+ 1105   08-101  A     FIRE/EMS TAC 4                             Fire-Tac 
+ 1106   08-102  A     FIRE/EMS TAC 5                             Fire-Tac 
+ 1107   08-103  A     FIRE/EMS TAC 6                             Fire-Tac 
+
+
+ ==EMS Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 1153   09-001  A     Dispatch-1                                 EMS Dispatch 
+ 1154   09-002  A     Dispatch-2                                 EMS Dispatch 
+ 2045   15-155  A     EMS Auto Dispatch                          EMS Dispatch 
+ 1602   12-082  A     EMS Beaumont                               EMS Dispatch 
+ 1059   08-043  A     Phone Patch 1                              EMS-Talk 
+ 1156   09-004  A     Ambulance Update-1                         EMS-Tac 
+ 1157   09-005  A     Ambulance Update-2                         EMS-Tac 
+ 1158   09-006  A     Ambulance Update-3                         EMS-Tac 
+ 1159   09-007  A     Ambulance Update-4                         EMS-Tac 
+ 1160   09-010  A     Ambulance Update-5                         EMS-Tac 
+ 1161   09-011  A     Ambulance Update-6                         EMS-Tac 
+ 1131   08-133  A     EMS Deployment                             EMS-Tac 
+ 1155   09-003  A     Ambulance Information                      EMS-Tac 
+ 15     00-017  A     EMS to Patch to St. Albert EMS             EMS-Tac 
+ 1126   08-126  A     Coverage outside of City                   EMS-Tac 
+ 1162   09-012  A     EMS Transfer A                             EMS-Tac 
+ 1163   09-013  A     EMS Transfer A                             EMS-Talk 
+ 1713   13-061  A     Ambulance Mutual Aid 1                     EMS-Tac 
+ 1725   13-075  A     Ambulance Mutual Aid 2                     EMS-Tac 
+ 1800   14-010  A     Ambulance Fire Simulcast                   Multi-Tac 
+ 1094   08-086  A     EMS Patch to Hospitals 1                   EMS-Talk 
+ 1095   08-087  A     EMS Patch to Hospitals 2                   EMS-Talk 
+ 1122   08-122  A     Grey Nuns Hospital                         Hospital 
+ 1124   08-124  A     Misericordia Hospital                      Hospital 
+ 1125   08-125  A     North East Medical Center                  Hospital 
+ 1121   08-121  A     Royal Alexandra Hospital                   Hospital 
+ 1128   08-130  A     Strathcona Hospital                        Hospital 
+ 1123   08-123  A     University of Alberta Hospital             Hospital 
+ 1871   14-097  A     St. John Ambulance                         EMS-Talk 
+ 
+
+ ==Common Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 2046   15-156  A     Alternate dispatch for Emergency Services  Multi-Dispatch 
+ 1569   12-041  A     Mutual Aid-1                               Multi-Dispatch 
+ 1570   12-042  A     Mutual Aid-2                               Multi-Dispatch 
+ 1571   12-043  A     Mutual Aid-3                               Multi-Dispatch 
+ 1578   12-052  A     Search and Rescue                          Emergency Ops 
+ 1581   12-055  A     U of A Campus Security and FRS Patch       Multi-Tac 
+
+
+ ==Public Works Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 556    04-054  A     Animal Control                             Public Works 
+ 1697   13-041  A     Drainage                                   Public Works 
+ 1698   13-042  A     Drainage                                   Public Works 
+ 1699   13-043  A     Drainage                                   Public Works 
+ 1700   13-044  A     Drainage                                   Public Works 
+ 1702   13-046  A     Drainage                                   Public Works 
+ 1703   13-047  A     Drainage                                   Public Works 
+ 1704   13-050  A     Drainage                                   Public Works 
+ 1705   13-051  A     Drainage                                   Public Works 
+ 1706   13-052  A     Drainage                                   Public Works 
+ 1707   13-053  A     Drainage                                   Public Works 
+ 1708   13-054  A     Drainage                                   Public Works 
+ 1709   13-055  A     Drainage                                   Public Works 
+ 1710   13-056  A     Drainage                                   Public Works 
+ 1711   13-057  A     Drainage                                   Public Works 
+ 1729   13-081  A     Drainage                                   Public Works 
+ 1730   13-082  A     Drainage                                   Public Works 
+ 1731   13-083  A     Drainage                                   Public Works 
+ 1701   13-045  A     Drainage                                   Public Works 
+ 1795   14-003  A     Works Crews                                Public Works 
+ 1799   14-007  A     Works Crews                                Public Works 
+ 1732   13-084  A     Drainage                                   Public Works 
+ 2047   15-157  A     Fleet Services                             Public Works 
+ 1879   14-107  A     Forestry                                   Public Works 
+ 1878   14-106  A     Forestry                                   Public Works 
+ 1761   13-121  A     MES                                        Public Works 
+ 1762   13-122  A     MES                                        Public Works 
+ 1763   13-123  A     MES                                        Public Works 
+ 1764   13-124  A     MES                                        Public Works 
+ 1765   13-125  A     MES                                        Public Works 
+ 1766   13-126  A     MES                                        Public Works 
+ 1860   14-084  A     Park Rangers                               Public Works 
+ 1876   14-104  A     Parks & Recreation                         Public Works 
+ 1877   14-105  A     Parks & Recreation                         Public Works 
+ 1857   14-081  A     Parks & Recreation                         Public Works 
+ 1875   14-103  A     Parks & Recreation                         Public Works 
+ 1881   14-111  A     Parks & Recreation                         Public Works 
+ 1880   14-110  A     Parks & Recreation                         Public Works 
+ 1883   14-113  A     Parks Emergency                            Public Works 
+ 1825   14-041  A     Survey 1                                   Public Works 
+ 1826   14-042  A     Survey 2                                   Public Works 
+ 1827   14-043  A     Survey 3                                   Public Works 
+ 1828   14-044  A     Survey 4                                   Public Works 
+ 1829   14-045  A     Survey 5                                   Public Works 
+ 1830   14-046  A     Survey 6                                   Public Works 
+ 1831   14-047  A     Survey 7                                   Public Works 
+ 1832   14-050  A     Survey 8                                   Public Works 
+ 1833   14-051  A     Survey 9                                   Public Works 
+ 1834   14-052  A     Survey 10                                  Public Works 
+ 1835   14-053  A     Survey 11                                  Public Works 
+ 1836   14-054  A     Survey 12                                  Public Works 
+ 1837   14-055  A     Survey 13                                  Public Works 
+ 1838   14-056  A     Survey 14                                  Public Works 
+ 1839   14-057  A     Survey 15                                  Public Works 
+ 1840   14-060  A     Survey 16                                  Public Works 
+ 1872   14-100  A     TRA-WEST                                   Public Works 
+ 1793   14-001  A     Waste Management                           Public Works 
+ 1737   13-091  A     Waste Water 1                              Public Works 
+ 1744   13-100  A     Water Treatment                            Public Works 
+ 1746   13-102  A     Water Treatment                            Public Works 
+ 1747   13-103  A     Water Treatment                            Public Works 
+ 1743   13-097  A     Water Treatment                            Public Works 
+ 1748   13-104  A     Water Treatment                            Public Works 
+ 1742   13-096  A     Water Treatment                            Public Works 
+ 1741   13-095  A     Water Treatment                            Public Works 
+ 1740   13-094  A     Water Treatment                            Public Works 
+ 1739   13-093  A     Water Treatment                            Public Works 
+ 1738   13-092  A     Water Treatment                            Public Works 
+ 1796   14-004  A     Work Crew Dispatch                         Public Works 
+ 1798   14-006  A     Work Crews                                 Public Works 
+
+
+ ==Edmonton Transit System Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 161    01-041  A     Transit Peace Officers Ch 1                Law Talk 
+ 162    01-042  A     Transit Peace Officers Ch 2                Law Talk 
+ 225    01-121  A     LRT Operations & Transit Peace Officers 1  Multi-Talk 
+ 226    01-122  A     LRT Operations & Transit Peace Officers 2  Multi-Talk 
+ 97     00-121  A     LRT Ops Ch. 1                              Transportation 
+ 98     00-122  A     LRT Ops Ch. 2                              Transportation 
+ 103    00-127  A     LRT Inspectors                             Transportation 
+ 67     00-083  A     LRT Operator Training                      Transportation 
+ 104    00-130  A     LRT Maintenance Book On                    Transportation 
+ 105    00-131  A     LRT Maintenance                            Transportation 
+ 106    00-132  A     LRT Maintenance                            Transportation 
+ 107    00-133  A     LRT Service                                Transportation 
+ 143    01-017  A     Bus Emergency                              Transportation 
+ 2033   15-141  A     ETS Patch                                  Transportation 
+ 129    01-001  A     Bus Operations 1                           Transportation 
+ 130    01-002  A     Bus Operations 2                           Transportation 
+ 131    01-003  A     Bus Operations 3                           Transportation 
+ 132    01-004  A     Bus Operations 4                           Transportation 
+ 133    01-005  A     Bus Operations 5                           Transportation 
+ 135    01-007  A     Bus Inspectors Ch 1                        Transportation 
+ 136    01-010  A     Bus Inspectors Ch 2                        Transportation 
+ 68     00-084  A     Bus Operator Training                      Transportation 
+ 137    01-011  A     Bus Fleet Services                         Transportation 
+ 139    01-013  A     Bus Charter / TPO 1                        Transportation 
+ 140    01-014  A     Bus Charter / TPO 2                        Transportation 
+ 141    01-015  A     Bus Charter / TPO 3                        Transportation 
+ 65     00-081  A     ETS Radio Test                             Transportation 
+ 134    01-006  A     Bus Private Channel                        Transportation 
+
+
+ ==Roads Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 1633   12-121  A     Roadways                                   Transportation 
+ 1634   12-122  A     Roadways                                   Transportation 
+ 1635   12-123  A     Roadways                                   Transportation 
+ 1636   12-124  A     Roadways                                   Transportation 
+ 1637   12-125  A     Roadways                                   Transportation 
+ 1638   12-126  A     Roadways                                   Transportation 
+ 1639   12-127  A     Roadways                                   Transportation 
+ 1640   12-130  A     Roadways                                   Transportation 
+ 1641   12-131  A     Roadways                                   Transportation 
+ 1642   12-132  A     Roadways                                   Transportation 
+ 1643   12-133  A     Roadways                                   Transportation 
+ 1644   12-134  A     Roadways                                   Transportation 
+ 1645   12-135  A     Roadways                                   Transportation 
+ 1646   12-136  A     Roadways Dispatch                          Transportation 
+ 1647   12-137  A     Roadways Dispatch                          Transportation 
+ 1665   13-001  A     Traffic                                    Transportation 
+ 1666   13-002  A     Traffic                                    Transportation 
+ 1667   13-003  A     Traffic                                    Transportation 
+ 1668   13-004  A     Traffic                                    Transportation 
+
+
+ ==Stadium Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 1867   14-093  A     Commonwealth Stadium Ch 11                 Business 
+ 1868   14-094  A     Commonwealth Stadium                       Business 
+ 1869   14-095  A     Ushers                                     Business 
+ 1870   14-096  A     Cleaners                                   Business 
+
+
+ ==Tech Talkgroups==
+--------------------------------------------------------------------------------
+ DEC    AFS     Mode  Description                                Tag            
+--------------------------------------------------------------------------------
+ 643    05-003  A     Administrative Maintenance                 Public Works 
+ 650    05-012  A     Administrative Maintenance                 Public Works 

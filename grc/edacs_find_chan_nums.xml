@@ -1,0 +1,63 @@
+<block>
+  <name>Find Channel Numbers</name>
+  <key>edacs_find_chan_nums</key>
+  <category>[EDACS]</category>
+  <import>import edacs</import>
+  <make>edacs.find_chan_nums($freq_list, $center_freq, $samp_rate, $threshold)</make>
+  <param>
+    <name>Frequencies</name>
+    <key>freq_list</key>
+    <value>866.0375, 866.2875, 866.5375, 866.7875, 867.0375, 867.2875, 867.5375, 867.7875, 868.0375, 868.2875, 868.5375, 868.7875, 866.0625, 866.3125, 866.5625, 866.8125, 867.0625, 867.3125, 867.5625, 867.8125</value>
+    <type>float_vector</type>
+  </param>
+  <param>
+    <name>Center Frequency</name>
+    <key>center_freq</key>
+    <value>867.4105</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Sample Rate</name>
+    <key>samp_rate</key>
+    <value>4000000</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Threshold</name>
+    <key>threshold</key>
+    <value>0.1</value>
+    <type>float</type>
+  </param>
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+  <sink>
+    <name>status_in</name>
+    <type>message</type>
+    <optional>0</optional>
+  </sink>
+  <source>
+    <name>status_out</name>
+    <type>message</type>
+    <optional>0</optional>
+  </source>
+  <doc>
+    Description
+      The Find Channel Numbers block is a sink block (1:0 input:output) that determines what the channel number of each input frequency is.
+
+    Ports:
+    
+      The primary input port accepts complex values from the radio source. The status_in port receives a message containing the current channel number, the control channel number, and a boolean ctrl_status that indicates if the control channel has changed. Messages from this port notifies the block that it can check which channels are currently active. The status_out port sends a message with a vector containing the known channel mappings. 
+
+    Parameters:
+
+      Frequencies (MHz) - The list of channels on the system in megahertz. This should be the same list from the Process EDACS Message block.
+
+      Center Frequency (MHz) - The frequency that your SDR is tuned to in megahertz.
+
+      Sample Rate (Hz) - The input sample rate in hertz. 
+
+      Threshold - The cut off value for determing if a channel is active or not.
+  </doc>
+</block>

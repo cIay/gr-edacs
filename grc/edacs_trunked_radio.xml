@@ -1,0 +1,169 @@
+<block>
+  <name>Trunked Radio</name>
+  <key>trunked_radio</key>
+  <category>[EDACS]</category>
+  <import>from edacs import trunked_radio</import>
+  <make>trunked_radio(
+    center_freq=$center_freq,
+    find_chan_nums=$find_chan_nums,
+    freq_list=$freq_list,
+    noise_threshold=$noise_threshold,
+    sink_rate=$sink_rate,
+    source_rate=$source_rate,
+    talkgroup=$talkgroup,
+    tone_threshold=$tone_threshold,
+    track_analog=$track_analog,
+    track_digital=$track_digital,
+    voice_threshold=$voice_threshold
+)</make>
+  <callback>set_center_freq($center_freq)</callback>
+  <callback>set_freq_list($freq_list)</callback>
+  <callback>set_noise_threshold($noise_threshold)</callback>
+  <callback>set_sink_rate($sink_rate)</callback>
+  <callback>set_source_rate($source_rate)</callback>
+  <callback>set_talkgroup($talkgroup)</callback>
+  <callback>set_tone_threshold($tone_threshold)</callback>
+  <callback>set_find_lcns($find_lcns)</callback>
+  <callback>set_track_analog($track_analog)</callback>
+  <callback>set_track_digital($track_digital)</callback>
+  <callback>set_voice_threshold($voice_threshold)</callback>
+  <param>
+    <name>Talkgroup</name>
+    <key>talkgroup</key>
+    <value>1796</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Frequency List</name>
+    <key>freq_list</key>
+    <value>[866.0375, 866.2875, 866.5375, 866.7875, 867.0375, 867.2875, 867.5375, 867.7875, 868.0375, 868.2875, 868.5375, 868.7875, 866.0625, 866.3125, 866.5625, 866.8125, 867.0625, 867.3125, 867.5625, 867.8125]</value>
+    <type>raw</type>
+  </param>
+  <param>
+    <name>Center Frequency</name>
+    <key>center_freq</key>
+    <value>867.4105</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Source Sample Rate</name>
+    <key>source_rate</key>
+    <value>4000000</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Sink Sample Rate</name>
+    <key>sink_rate</key>
+    <value>48000</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Track Analog</name>
+    <key>track_analog</key>
+    <value>True</value>
+    <type>bool</type>
+    <option>
+      <name>On</name>
+      <key>True</key>
+    </option>
+    <option>
+      <name>Off</name>
+      <key>False</key>
+    </option>
+  </param>
+  <param>
+    <name>Track Digital</name>
+    <key>track_digital</key>
+    <value>False</value>
+    <type>bool</type>
+    <option>
+      <name>On</name>
+      <key>True</key>
+    </option>
+    <option>
+      <name>Off</name>
+      <key>False</key>
+    </option>
+  </param>
+  <param>
+    <name>Tone Threshold</name>
+    <key>tone_threshold</key>
+    <value>0.1</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Noise Threshold</name>
+    <key>noise_threshold</key>
+    <value>5</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Find Channel Numbers</name>
+    <key>find_chan_nums</key>
+    <value>False</value>
+    <type>bool</type>
+    <option>
+      <name>On</name>
+      <key>True</key>
+    </option>
+    <option>
+      <name>Off</name>
+      <key>False</key>
+    </option>
+  </param>
+  <param>
+    <name>Voice Threshold</name>
+    <key>voice_threshold</key>
+    <value>0.4</value>
+    <type>float</type>
+  </param>
+  <sink>
+    <name>IQ In</name>
+    <type>complex</type>
+    <vlen>1</vlen>
+  </sink>
+  <source>
+    <name>Audio Out</name>
+    <type>float</type>
+    <vlen>1</vlen>
+  </source>
+  <source>
+    <name>ASCII Out</name>
+    <type>byte</type>
+    <vlen>1</vlen>
+  </source>
+  <doc>
+    Description
+      The Trunked Radio block is a hierarchical block used to track communications on a trunked radio system. Currently it supports EDACS (both analog and digital ProVoice). 
+
+    Ports:
+
+      There is one input port that accepts complex values from the radio source and two output ports. The first ouput port produces float values which are the voice samples, while the other ouput port produces bytes that are ASCII characters which show decoded control channel frames.
+
+
+    Parameters:
+
+      Talkgroup - The talkgroup of interest. Composed of 11 bits where the first 3 most significant bits represent the agency, the next 4 represent fleet and the last 4 represent subfleet. The AFS hierarchy was implemented bi-directionally. This means that if, for example, your input talkgroup translates into {A=2, F=1, S=0}, and {A=2, F=1, S=1} is received, then the transmission will be heard. And if your input talkgroup translates into {A=2, F=1, S=1}, and {A=2, F=1, S=0} is received, the transmission will still be heard.
+
+      Frequency List (MHz) - The list of channels on the system in megahertz. They must be entered in order of channel number (index 0 is channel 1, index 1 is channel 2, etc). They can only be entered out of order if 'Find Channel Numbers' is set 'On'.
+
+      Center Frequency (MHz) - The frequency that your SDR is tuned to in megahertz.
+
+      Source Sample Rate (Hz) - The input sample rate in hertz. 
+
+      Sink Sample Rate (Hz) - The output sample rate in hertz.
+
+      Track Analog - Accepts analog transmission when turned on.
+
+      Track Digital - Accepts digital transmissions when turned on.
+
+      Tone Threshold - Threshold for detecting the end of transmission beeps at the end of a call. If transmissions are getting cut off this value is too low, if the beeps are heard this value is too high. A slider can be useful in determining this value.
+
+      Noise Threshold - Threshold for detecting noise in the case of that the end of transmission beeps are missed. If transmissions are getting interrupted and 'NOISY CHANNEL, MUTING...' messages being printed out, then this value is too low. If the channel is getting stuck on static this value is too high. A slider can be useful in determining this value.
+
+      Find Channel Numbers - When turned on, automatically orders the frequencies entered in 'Frequency List' by finding the correct channel number associated with each frequency. This is done by looking at the signal strength on each channel after getting a channel assignment. Since many radio's may be active on the system at one time this will not get the correct channel number instantly, but over time (~5-10 minutes) it will be narrowed down.
+
+      Voice Threshold - The cut off value used in finding channel numbers for determing if a channel is active or not.
+  </doc>
+  <grc_source>./edacs_hier.grc</grc_source>
+</block>

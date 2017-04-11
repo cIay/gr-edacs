@@ -1,0 +1,70 @@
+<block>
+  <name>Handle EOT</name>
+  <key>edacs_handle_eot</key>
+  <category>[EDACS]</category>
+  <import>import edacs</import>
+  <make>edacs.handle_eot($samp_rate, $tone_freq, $tone_threshold, $noise_threshold)</make>
+  <callback>set_tone_threshold($tone_threshold)</callback>
+  <callback>set_noise_threshold($noise_threshold)</callback>
+  <param>
+    <name>Sample Rate</name>
+    <key>samp_rate</key>
+    <value>48000</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Tone Frequency</name>
+    <key>tone_freq</key>
+    <value>4800</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Tone Threshold</name>
+    <key>tone_threshold</key>
+    <value>0.1</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Noise Threshold</name>
+    <key>noise_threshold</key>
+    <value>5</value>
+    <type>float</type>
+  </param>
+  <sink>
+    <name>in</name>
+    <type>float</type>
+  </sink>
+  <sink>
+    <name>status_in</name>
+    <type>message</type>
+    <optional>0</optional>
+  </sink>
+  <source>
+    <name>out</name>
+    <type>float</type>
+  </source>
+  <source>
+    <name>status_out</name>
+    <type>message</type>
+    <optional>0</optional>
+  </source>
+  <doc>
+    Description
+      The Handle EOT block is a sync block (1:1 input:output) that acts both as a valve with muted/unmuted states, as well as as an end of transmission tone detector.
+
+    Ports:
+
+      Both the primary input port and the primary output port accept/produce float values. Receiving a message on status_in indicates muting should be stopped. Once the EOT beep is detected a message is sent on status_out.
+
+
+    Parameters:
+
+      Sample Rate (Hz) - The input and output sample rate in hertz. 
+
+      Tone Frequency (Hz) - The frequency of the target tone to detect.
+
+      Tone Threshold - Threshold for detecting the end of transmission beeps at the end of a call. If transmissions are getting cut off this value is too low, if the beeps are heard this value is too high.
+
+      Noise Threshold - Threshold for detecting noise in the case of that the end of transmission beeps are missed. If transmissions are getting interrupted and 'NOISY CHANNEL, MUTING...' messages being printed out, then this value is too low. If the channel is getting stuck on static this value is too high.
+  </doc>
+</block>

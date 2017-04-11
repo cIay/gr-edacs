@@ -1,0 +1,104 @@
+<block>
+  <name>Process EDACS Message</name>
+  <key>edacs_proc_msg</key>
+  <category>[EDACS]</category>
+  <import>import edacs</import>
+  <make>edacs.proc_msg($talkgroup, $freq_list, $center_freq, $find_lcns, $analog, $digital)</make>
+  <param>
+    <name>Talkgroup</name>
+    <key>talkgroup</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Frequencies</name>
+    <key>freq_list</key>
+    <value>866.0375, 866.2875, 866.5375, 866.7875, 867.0375, 867.2875, 867.5375, 867.7875, 868.0375, 868.2875, 868.5375, 868.7875, 866.0625, 866.3125, 866.5625, 866.8125, 867.0625, 867.3125, 867.5625, 867.8125</value>
+    <type>float_vector</type>
+  </param>
+  <param>
+    <name>Center Frequency</name>
+    <key>center_freq</key>
+    <value>867.4105</value>
+    <type>float</type>
+  </param>
+  <param>
+    <name>Analog</name>
+    <key>analog</key>
+    <value>True</value>
+    <type>bool</type>
+  </param>
+  <param>
+    <name>Digital</name>
+    <key>digital</key>
+    <value>False</value>
+    <type>bool</type>
+  </param>
+  <param>
+    <name>Find Channel Numbers</name>
+    <key>find_lcns</key>
+    <value>False</value>
+    <type>bool</type>
+  </param>
+  <sink>
+    <name>in</name>
+    <type>byte</type>
+  </sink>
+  <sink>
+    <name>eot_status_in</name>
+    <type>message</type>
+    <optional>1</optional>
+  </sink>
+  <sink>
+    <name>chan_status_in</name>
+    <type>message</type>
+    <optional>1</optional>
+  </sink>
+  <source>
+    <name>out</name>
+    <type>byte</type>
+  </source>
+  <source>
+    <name>eot_status_out</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+  <source>
+    <name>chan_status_out</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+  <source>
+    <name>ctrl_freq</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+  <source>
+    <name>voice_freq</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+  <doc>
+    Description
+      The Process EDACS Message block is used to decode the incoming EDACS control channel data stream, and make decisions based on that input while controlling other blocks via message passing.
+
+    Ports:
+
+      The primary input port accepts bytes that should have been passed through the Correlate Access Code block so that the start of frames can be found. The primary output port produces bytes that are ASCII characters which show decoded control channel frames. The rest of the ports are for passing messages between blocks. The output port eot_status_out sends a message containing a boolean set to true for digital and false for analog. This message signals the Handle EOT block to unmute and start listening for the end of transmission tone. When the input port eot_status_in receives a message the block can go back to accepting voice channel assignments. The ouput port chan_status_out sends a message containing the current channel number, the control channel number, and a boolean ctrl_status that indicates if the control channel has changed. The input port chan_status_in receives a vector containing the mappings to the correct channel numbers. Once the values in the vector are no longer set to -1 then finding the channel numbers can stop. The last two output ports are used for controlling signal sources. When looking for control channels the next frequency to check is sent through ctrl_freq. When changing the voice channel after getting a new channel assignment the frequency is sent through voice_freq.
+
+
+    Parameters:
+
+      Talkgroup - The talkgroup of interest. Composed of 11 bits where the first 3 most significant bits represent the agency, the next 4 represent fleet and the last 4 represent subfleet. The AFS hierarchy was implemented bi-directionally. This means that if, for example, your input talkgroup translates into {A=2, F=1, S=0}, and {A=2, F=1, S=1} is received, then the transmission will be heard. And if your input talkgroup translates into {A=2, F=1, S=1}, and {A=2, F=1, S=0} is received, the transmission will still be heard.
+
+      Frequencies (MHz) - The list of channels on the system in megahertz. They must be entered in order of channel number (index 0 is channel 1, index 1 is channel 2, etc). They can only be entered out of order if 'Find Channel Numbers' is set 'On'.
+
+      Center Frequency (MHz) - The frequency that your SDR is tuned to in megahertz.
+
+      Analog - Accepts analog transmission when turned on.
+
+      Digital - Accepts digital transmissions when turned on.
+
+      Find Channel Numbers - Requires a connection to the Find Channel Numbers block to function when turned on. If it is, then it automatically orders the frequencies entered in 'Frequencies' by finding the correct channel number associated with each frequency. This is done by looking at the signal strength on each channel after getting a channel assignment. Since many radio's may be active on the system at one time this will not get the correct channel number instantly, but over time (~5-10 minutes) it will be narrowed down.
+  </doc>
+</block>
